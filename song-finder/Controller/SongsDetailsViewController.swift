@@ -7,24 +7,92 @@
 //
 
 import UIKit
+import AVFoundation
 
-class SongsDetailsViewController: UIViewController {
-
-    override func viewDidLoad() {
+class SongsDetailsViewController: UIViewController
+{
+    
+    @IBOutlet weak var imgSong: UIImageView!
+    @IBOutlet weak var lblTrack: UILabel!
+    @IBOutlet weak var lblArtist: UILabel!
+    
+    var songDetails = Results(artistName: "", trackName: "", collectionName: "", artworkUrl100: "", previewUrl: "" )
+    
+    var player: AVPlayer?
+    
+    var playerItem: AVPlayerItem?
+    
+    override func viewDidLoad()
+    {
         super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
+        
+        loadData()
+        
+        setupPlayer()
     }
     
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    func loadData()
+    {
+        lblTrack.text = songDetails.trackName
+        
+        lblArtist.text = songDetails.artistName
+        
+        let fileUrl = URL(string: songDetails.artworkUrl100)
+        
+        self.imgSong.load(url: fileUrl!)
     }
-    */
+    
+    func setupPlayer()
+    {
+        let songUrl = URL(string: songDetails.previewUrl)
+        
+        let playerItem: AVPlayerItem = AVPlayerItem(url: songUrl!)
 
+        player = AVPlayer(playerItem: playerItem)
+
+    }
+ 
+    @IBAction func btnPlay(_ sender: UIBarButtonItem)
+    {
+        if player?.rate == 0
+        {
+            player!.play()
+        }
+    }
+    
+    @IBAction func btnPause(_ sender: UIBarButtonItem)
+    {
+        if player?.rate != 0
+        {
+            player!.pause()
+        }
+    }
+    
+    @IBAction func btnRestart(_ sender: UIBarButtonItem)
+    {
+        if player?.rate == 0
+        {
+            player!.play()
+        }
+    }
+}
+
+extension UIImageView
+{
+    func load(url: URL)
+    {
+        DispatchQueue.global().async
+        { [weak self] in
+            if let data = try? Data(contentsOf: url)
+            {
+                if let image = UIImage(data: data)
+                {
+                    DispatchQueue.main.async
+                    {
+                        self?.image = image
+                    }
+                }
+            }
+        }
+    }
 }

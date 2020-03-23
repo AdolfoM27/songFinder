@@ -7,3 +7,10 @@
 //
 
 import Foundation
+
+struct ApiData: Codable
+{
+    let resultCount: Int
+    let results: [Results]
+}
+

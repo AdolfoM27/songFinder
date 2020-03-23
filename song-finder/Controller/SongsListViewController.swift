@@ -11,12 +11,14 @@ import UIKit
 class SongsListViewController: UITableViewController
 {
 
-    let itemArray = ["Song 1", "Song 2", " song 3","Song 4", "Song 5", " song 6","Song 7", "Song 8", " song 9","Song 10", "Song 11", " song 12","Song 13", "Song 14", " song 15","Song 16", "Song 17", " song 18","Song 19", "Song 2", " song 3"]
+    var apiManager = ApiManager()
+    
+    var itemArray = ApiData(resultCount: 0, results: [])
     
     override func viewDidLoad()
     {
         super.viewDidLoad()
-        
+        apiManager.delegate = self
     }
 
     //MARK: - Table View Datasource Methods
@@ -24,7 +26,7 @@ class SongsListViewController: UITableViewController
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int
     {
         
-        return itemArray.count
+        return itemArray.resultCount
     
     }
 
@@ -32,10 +34,26 @@ class SongsListViewController: UITableViewController
     {
         let cell = tableView.dequeueReusableCell(withIdentifier: "SongItemCell", for: indexPath)
         
-        cell.textLabel?.text = itemArray[indexPath.row]
+        cell.textLabel?.text = itemArray.results[indexPath.row].trackName
         
         return cell
     }
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath)
+    {
+        performSegue(withIdentifier: "goToDetails", sender: self)
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?)
+    {
+        let destinationVc = segue.destination as! SongsDetailsViewController
+        
+        if let indexPath = tableView.indexPathForSelectedRow
+        {
+            destinationVc.songDetails = itemArray.results[indexPath.row]
+        }
+    }
+
 }
 
 //MARK: - Search Bar Methods
@@ -44,7 +62,29 @@ extension SongsListViewController: UISearchBarDelegate
 {
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar)
     {
+        if let term = searchBar.text
+        {
+            self.apiManager.fetchSongs(term: term)
+        }
         
     }
+}
+
+//MARK: - Delegate Methods
+
+extension SongsListViewController: ApiManagerDelegate
+{
+    func didUpdatedsongList(_ apiManager: ApiManager, apiData: ApiData)
+    {
+        DispatchQueue.main.async
+        {
+            self.itemArray = apiData
+            self.tableView.reloadData()
+        }
+    }
     
+    func didFailWithError(error: Error)
+    {
+        print(error)
+    }
 }
